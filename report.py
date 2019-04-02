@@ -98,13 +98,15 @@ def print_errors_over_one():
     query = ("""
 
     with fail_percentages as
-      ( select to_char(day_requests.day, 'FMMonth DD, YYYY'),
-               round(failed_requests*100/total_requests::numeric, 2)
-                 as fail_percent
-          from day_requests, day_fails
-          where day_requests.day = day_fails.day )
+      ( select time::date as day,
+               (count(*) filter (where status like '4%' or status like '5%')
+                / count(*)::numeric) * 100 as fail_percent
+          from log
+          group by day )
 
-    select * from fail_percentages
+    select to_char(day, 'FMMonth DD, YYYY'),
+           round(fail_percent, 2)
+      from fail_percentages
       where fail_percent > 1;
 
     """)
