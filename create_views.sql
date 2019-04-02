@@ -1,10 +1,13 @@
 
 
 create or replace view article_popularity as
-  select slug, count(path) as views
-    from log, articles
+  select slug, views
+    from (
+      select path, count(*) as views
+        from log
+        group by path
+    )log, articles
     where path = '/article/' || articles.slug
-    group by slug
     order by views desc;
 
 
